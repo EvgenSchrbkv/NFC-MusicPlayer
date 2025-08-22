@@ -21,7 +21,7 @@ Project of an NFC module for controlling a music player. Features include music 
 
 Світлодіодний індикатор стану Wi-Fi та NFC.
 Вибір альбомів і виконавців та їх перемикання здійснюється за допомогою автоматизацій:1) NFC Player - Відтворення виконавців. 2) NFC Наступний альбом. 3) NFC зупинити музыку якщо забрали мітку.
-
+Потрібно буде створити помічники: input_text.last_album_played, input_text.last_tag_id.
 
 English
 
@@ -53,3 +53,5 @@ NFC Player – Play Artists.
 NFC – Next Album.
 
 NFC – Stop Music When Tag Is Removed.
+
+You will need to create helpers: input_text.last_album_played, input_text.last_tag_id.
