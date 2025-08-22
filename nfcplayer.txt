@@ -1,0 +1,187 @@
+esphome:
+  name: nfcplayer
+  friendly_name: NFCPlayer
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+# Логи
+logger:
+  level: DEBUG
+  logs:
+    spi: DEBUG
+    rc522: DEBUG
+
+# OTA + API
+ota:
+- platform: esphome  
+  password: "b4a76a670e33661bb7671d940dd3a4f9"
+
+api:
+  encryption:
+    key: "vgSlorBYxY+io4Kn2pq2zU+lbvCry580RDzou2hb+Bw="
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  
+  manual_ip:
+    static_ip: 192.168.1.145
+    gateway: 192.168.1.1
+    subnet: 255.255.255.0
+  
+  on_connect:
+    then:
+      - logger.log: "WiFi підключено"
+      - switch.turn_on: status_led
+  
+  on_disconnect:
+    then:
+      - logger.log: "WiFi втрачено"
+      - switch.turn_off: status_led
+  
+captive_portal:
+
+web_server:
+  port: 80
+  version: 3
+
+globals:
+  - id: volume_level
+    type: float
+    restore_value: yes
+    initial_value: '0.5'
+  - id: current_tag
+    type: std::string
+    restore_value: no
+    initial_value: ""
+  - id: tag_present
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+# Вихід для світлодіода
+output:
+  - platform: gpio
+    pin: GPIO8
+    id: status
+
+switch:
+  - platform: output
+    output: status
+    id: status_led
+    restore_mode: ALWAYS_ON
+    name: "Статус-світлодіод"
+  
+  - platform: template
+    id: led_blink_control
+    name: "Миготіння світлодіода"
+    restore_mode: ALWAYS_OFF
+    optimistic: true
+    on_turn_on:
+      - logger.log: "Миготіння УВІМКНЕНО"
+    on_turn_off:
+      - logger.log: "Миготіння ВИМКНЕНО"
+
+# Миготіння кожну секунду, якщо дозволено
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            switch.is_on: led_blink_control
+          then:
+            - switch.toggle: status_led
+
+# rc522 по SPI
+spi:
+  id: my_spi
+  clk_pin: GPIO4
+  miso_pin: GPIO5
+  mosi_pin: GPIO6
+
+rc522_spi:
+  id: my_rc522
+  spi_id: my_spi
+  cs_pin: GPIO7
+  update_interval: 1s
+  on_tag:
+    then:
+      - lambda: |-
+          ESP_LOGI("nfc", "Зчитано мітку UID: %s", x.c_str());
+          if (id(current_tag) != x) {
+            id(current_tag) = x;
+            id(tag_present) = true;
+          }
+      - homeassistant.event:
+          event: esphome.nfc_tag_scanned
+          data:
+            device_name: nfcplayer
+            tag_id: !lambda 'return x;'
+            action: "scanned"
+  on_tag_removed:
+    then:
+      - lambda: |-
+          ESP_LOGI("nfc", "Мітку видалено: %s", id(current_tag).c_str());
+          id(tag_present) = false;
+      - homeassistant.event:
+          event: esphome.nfc_tag_removed
+          data:
+            device_name: nfcplayer
+            tag_id: !lambda 'return id(current_tag);'
+            action: "removed"
+      - lambda: |-
+          id(current_tag) = "";
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO21
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Кнопка енкодера"
+    on_press:
+      then:
+        - homeassistant.event:
+            event: esphome.album_next
+
+# Енкодер гучності
+sensor:
+  - platform: rotary_encoder
+    name: "Гучність"
+    id: volume_encoder
+    pin_a: GPIO10
+    pin_b: GPIO3
+    resolution: 1
+    on_clockwise:
+     - lambda: |-
+         id(volume_level) = clamp(id(volume_level) - 0.05, 0.0, 1.0);
+     - homeassistant.service:
+        service: media_player.volume_set
+        data:
+           entity_id: media_player.home_mini
+           volume_level: !lambda 'return id(volume_level);'
+         
+    on_anticlockwise:
+      - lambda: |-
+          id(volume_level) = clamp(id(volume_level) + 0.05, 0.0, 1.0);
+      - homeassistant.service:
+          service: media_player.volume_set
+          data:
+             entity_id: media_player.home_mini
+             volume_level: !lambda 'return id(volume_level);'
+
+# Сенсор для відстеження поточної мітки
+text_sensor:
+  - platform: template
+    name: "Поточна NFC мітка"
+    id: current_nfc_tag
+    lambda: |-
+      if (id(tag_present)) {
+        return {id(current_tag)};
+      } else {
+        return {"Немає мітки"};
+      }
+    update_interval: 2s
