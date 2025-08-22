@@ -1,0 +1,120 @@
+Автоматизація: NFC Player – Відтворення виконавців
+
+Ця автоматизація відповідає за відтворення випадкового альбому певного виконавця після зчитування NFC-мітки на пристрої NFCPlayer. Вона використовує Home Assistant та TTS для голосового повідомлення, контролює медіаплеєр і зберігає стан останнього альбому та останньої мітки.
+
+Основні частини:
+
+Тригери (triggers)
+Автоматизація спрацьовує при події esphome.nfc_tag_scanned, тобто коли пристрій ESPHome зчитав NFC-мітку.
+
+Умови (conditions)
+
+Перевіряється, чи існують дані про виконавця (artist_data is not none).
+
+Перевіряється, чи нова мітка відрізняється від останньої (tag_id != last_tag), щоб не відтворювати альбом повторно.
+
+Змінні (variables)
+
+artists_dict — словник NFC UID → дані про виконавця та список альбомів.
+
+tag_id — UID зчитаної мітки.
+
+last_tag — UID останньої зчитаної мітки.
+
+artist_data — дані виконавця для поточної мітки.
+
+last_album_id — ID останнього відтвореного альбому.
+
+filtered_albums — список альбомів без останнього відтвореного (якщо всі альбоми вже відтворювались, використовуються всі).
+
+selected — випадковий альбом із filtered_albums.
+
+artist_name і artist_code — назва та код виконавця для відображення/збереження.
+
+Дії (actions)
+
+Зберігає новий UID мітки в input_text.last_tag_id.
+
+Вимикає медіаплеєр (media_player.turn_off) та чекає, поки він вимкнеться.
+
+Коротка пауза, після чого медіаплеєр вмикається і встановлюється гучність.
+
+Відтворюється TTS-повідомлення з назвою виконавця та альбому.
+
+Остановлює поточне відтворення (media_stop) і запускає вибраний альбом через media_play.
+
+Пауза до моменту, поки медіаплеєр почне відтворення.
+
+Використовується media_pause → media_play, щоб забезпечити правильний старт відтворення.
+
+Зберігає ID останнього відтвореного альбому в input_text.last_album_played.
+
+Особливості
+
+Використовуються wait_template і delay, щоб переконатися, що медіаплеєр готовий перед зміною гучності або запуском TTS.
+
+Легко редагувати список виконавців та альбомів у artists_dict. Додати нові UID міток, змінити назви альбомів або ID плейлистів просто.
+
+Можна змінити гучність або порядок дій TTS/відтворення під свої потреби.
+
+
+
+English
+Automation: NFC Player – Play Artists
+
+This automation is responsible for playing a random album of a specific artist when an NFC tag is scanned on the NFCPlayer device. It uses Home Assistant and TTS for voice feedback, controls the media player, and saves the state of the last album and tag.
+
+Main parts:
+
+Triggers
+The automation triggers on the event esphome.nfc_tag_scanned, i.e., when the ESPHome device reads an NFC tag.
+
+Conditions
+
+Checks if artist data exists (artist_data is not none).
+
+Checks that the new tag is different from the last one (tag_id != last_tag) to prevent repeating the album.
+
+Variables
+
+artists_dict — dictionary NFC UID → artist info and album list.
+
+tag_id — UID of the scanned tag.
+
+last_tag — UID of the last scanned tag.
+
+artist_data — data for the current tag’s artist.
+
+last_album_id — ID of the last played album.
+
+filtered_albums — list of albums excluding the last played one (if all albums have been played, all are used).
+
+selected — random album from filtered_albums.
+
+artist_name and artist_code — artist name and code for display/storage.
+
+Actions
+
+Saves the new tag UID to input_text.last_tag_id.
+
+Turns off the media player (media_player.turn_off) and waits until it is off.
+
+Short delay, then turns the media player on and sets the volume.
+
+Plays a TTS announcement with artist and album name.
+
+Stops any current playback (media_stop) and plays the selected album via media_play.
+
+Waits until the media player starts playing.
+
+Uses media_pause → media_play to ensure correct playback start.
+
+Saves the last played album ID in input_text.last_album_played.
+
+Notes
+
+wait_template and delay ensure the media player is ready before changing volume or playing TTS.
+
+Easily editable artists_dict — add new NFC UIDs, change album names, or playlist IDs.
+
+Volume, TTS messages, and playback sequence can be adjusted to fit your needs.
