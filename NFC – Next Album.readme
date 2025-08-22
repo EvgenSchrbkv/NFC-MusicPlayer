@@ -1,0 +1,115 @@
+Автоматизація: NFC – Наступний альбом (універсальна)
+
+Ця автоматизація дозволяє перемикати альбом відповідного виконавця, ґрунтуючись на останній відсканованій NFC-мітці. Вона корисна, коли користувач хоче переключити альбом без повторного зчитування мітки.
+
+Основні частини:
+
+Тригери (triggers)
+Автоматизація спрацьовує при події esphome.album_next, тобто коли на Home Assistant приходить сигнал перемикання альбому (наприклад, натискання кнопки на пристрої або логіка іншої автоматизації).
+
+Умови (conditions)
+
+Перевіряє, що медіаплеєр зараз відтворює музику (state: playing).
+
+Перевіряє, що дані про виконавця для останньої мітки існують (artist_data is not none).
+
+Змінні (variables)
+
+artists_dict — словник NFC UID → дані виконавця та список альбомів.
+
+last_tag_id — UID останньої зчитаної мітки.
+
+artist_data — дані виконавця для останньої мітки.
+
+last_album_id — ID останнього відтвореного альбому.
+
+filtered_albums — список альбомів без останнього відтвореного (якщо всі альбоми вже були відтворені, використовуються всі).
+
+selected — випадковий альбом із filtered_albums.
+
+artist_name і artist_code — назва та код виконавця.
+
+Дії (actions)
+
+Очищає плейлист медіаплеєра (media_player.clear_playlist) перед новим відтворенням.
+
+Вибирає випадковий альбом із фільтрованого списку.
+
+Зупиняє медіаплеєр (media_stop) і робить коротку паузу для стабільності.
+
+Відтворює TTS-повідомлення з назвою альбому та виконавця (chime_tts.say).
+
+Запускає обраний альбом через media_player.play_media.
+
+Використовує wait_template і media_pause → media_play для гарантованого старту відтворення.
+
+Зберігає останній відтворений альбом у input_text.last_album_played.
+
+Записує подію у журнал Home Assistant для відстеження дій користувача (logbook.log).
+
+Особливості
+
+Легко редагувати список виконавців та альбомів у artists_dict.
+
+Можна змінювати гучність, TTS-повідомлення, порядок дій перед відтворенням.
+
+Використовує фільтрацію останнього альбому, щоб уникнути повторів.
+
+
+
+Automation: NFC – Next Album (Universal)
+
+This automation allows switching to the next album of a given artist based on the last scanned NFC tag. It is useful when a user wants to change the album without scanning the tag again.
+
+Main parts:
+
+Triggers
+The automation triggers on the event esphome.album_next, i.e., when Home Assistant receives an album switch signal (e.g., button press on the device or another automation).
+
+Conditions
+
+Checks that the media player is currently playing (state: playing).
+
+Checks that artist data for the last tag exists (artist_data is not none).
+
+Variables
+
+artists_dict — dictionary NFC UID → artist info and album list.
+
+last_tag_id — UID of the last scanned tag.
+
+artist_data — artist info for the last tag.
+
+last_album_id — ID of the last played album.
+
+filtered_albums — list of albums excluding the last played one (if all albums were already played, all are used).
+
+selected — random album from filtered_albums.
+
+artist_name and artist_code — artist name and code.
+
+Actions
+
+Clears the media player playlist (media_player.clear_playlist) before playing a new album.
+
+Selects a random album from the filtered list.
+
+Stops the media player (media_stop) and adds a short delay for stability.
+
+Plays a TTS message announcing the artist and album (chime_tts.say).
+
+Starts the selected album via media_player.play_media.
+
+Uses wait_template and media_pause → media_play to ensure proper playback start.
+
+Saves the last played album to input_text.last_album_played.
+
+Logs the action in Home Assistant logbook (logbook.log).
+
+Notes
+
+The artist and album dictionary (artists_dict) is easily editable.
+
+Volume, TTS messages, and playback sequence can be customized.
+
+Filters out the last played album to avoid immediate repeats.
