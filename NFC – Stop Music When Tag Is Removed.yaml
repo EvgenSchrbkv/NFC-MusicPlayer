@@ -1,0 +1,35 @@
+alias: NFC зупинити музыку якщо забрали мітку
+description: ""
+triggers:
+  - event_type: esphome.nfc_tag_removed
+    trigger: event
+actions:
+  - action: media_player.media_stop
+    data: {}
+    target:
+      entity_id:
+        - media_player.home_mini_2    # your media player
+        - media_player.home_mini      # your media player
+  - action: media_player.volume_set
+    metadata: {}
+    data:
+      volume_level: 0.37
+    target:
+      entity_id: media_player.home_mini_2        # your media player
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.last_album_played
+    data:
+      value: ""
+    enabled: true
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.last_tag_id
+    data:
+      value: ""
+    enabled: true
+  - action: media_player.clear_playlist
+    metadata: {}
+    data: {}
+    target:
+      device_id: 7056232d1533d5b983c1dac2fc18afac        # your media player
