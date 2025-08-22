@@ -1,0 +1,52 @@
+Автоматизація: NFC – Зупинити музику при видаленні мітки
+
+Ця автоматизація зупиняє відтворення музики, коли NFC-мітку фізично забирають з пристрою NFCPlayer. Вона потрібна для того, щоб музика автоматично припинялася і стан пристрою очищався після завершення використання мітки.
+
+Основні частини:
+
+Тригери (triggers)
+
+Автоматизація спрацьовує на подію esphome.nfc_tag_removed, тобто коли ESPHome повідомляє про видалення мітки.
+
+Дії (actions)
+
+Зупиняє відтворення всіх медіаплеєрів, пов’язаних із системою (media_player.media_stop).
+
+Встановлює стандартну гучність для медіаплеєра Home Mini 2 (volume_level: 0.37).
+
+Очищає змінні input_text.last_album_played та input_text.last_tag_id, щоб наступне зчитування починалося з чистого стану.
+
+Очищає плейлист медіаплеєра (media_player.clear_playlist) для уникнення залишкових треків у черзі.
+
+Особливості:
+
+Легка інтеграція з іншими автоматизаціями: зчитування нової мітки автоматично запускає іншу автоматизацію для відтворення музики.
+
+Забезпечує контроль стану медіаплеєра та виключає повторне відтворення останнього альбому після видалення мітки.
+
+
+Automation: NFC – Stop Music When Tag Removed
+
+This automation stops music playback when an NFC tag is physically removed from the NFCPlayer device. It ensures that playback stops automatically and the device state is cleared after the tag is no longer present.
+
+Main parts:
+
+Triggers
+
+The automation triggers on the event esphome.nfc_tag_removed, i.e., when ESPHome reports the tag has been removed.
+
+Actions
+
+Stops playback on all relevant media players (media_player.media_stop).
+
+Sets the default volume for Home Mini 2 (volume_level: 0.37).
+
+Clears the variables input_text.last_album_played and input_text.last_tag_id to reset the state for the next tag scan.
+
+Clears the media player playlist (media_player.clear_playlist) to prevent leftover tracks.
+
+Notes:
+
+Integrates smoothly with other automations: scanning a new tag will automatically trigger the playback automation.
+
+Ensures proper media player state and prevents replay of the last album after the tag is removed.
