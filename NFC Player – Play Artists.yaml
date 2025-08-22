@@ -1,0 +1,141 @@
+alias: NFC Player - Відтворення виконавців
+description: Випадковий альбом з NFC для будь-якого виконавця без повтору
+triggers:
+  - event_type: esphome.nfc_tag_scanned
+    event_data:
+      device_name: nfcplayer
+    trigger: event
+conditions:
+  - condition: template
+    value_template: "{{ artist_data is not none }}"
+  - condition: template
+    value_template: "{{ tag_id != last_tag }}"
+actions:
+  - variables:
+      selected: "{{ filtered_albums | random }}"
+  - condition: template
+    value_template: "{{ selected is not none }}"
+  - target:
+      entity_id: input_text.last_tag_id
+    data:
+      value: "{{ tag_id }}"
+    action: input_text.set_value
+  - action: media_player.turn_off
+    target:
+      entity_id: media_player.home_mini_2         # your mediaplayer
+    data: {}
+  - wait_template: "{{ states('media_player.home_mini_2') == 'off' }}"          # your mediaplayer
+    timeout: 10
+  - delay: 3
+  - action: media_player.turn_on
+    target:
+      entity_id: media_player.home_mini_2            # your mediaplayer
+    data: {}
+  - wait_template: "{{ states('media_player.home_mini_2') in ['idle', 'paused'] }}"        # your mediaplayer
+    timeout: 15
+  - delay: 2
+  - target:
+      entity_id: media_player.home_mini_2            # your mediaplayer
+    data:
+      volume_level: 0.6
+    action: media_player.volume_set
+  - target:
+      entity_id: media_player.home_mini_2            # your mediaplayer
+    data:
+      message: "{{ artist_name }} — {{ selected.title }}"
+    action: chime_tts.say
+  - action: media_player.media_stop
+    target:
+      entity_id: media_player.home_mini_2            # your mediaplayer
+    data: {}
+  - target:
+      entity_id: media_player.home_mini_2            # your mediaplayer
+    data:
+      media_content_id: "{{ selected.id }}"
+      media_content_type: playlist
+    action: media_player.play_media
+  - wait_template: "{{ states('media_player.home_mini_2') == 'playing' }}"        # your mediaplayer
+    timeout: 15
+  - action: media_player.media_pause
+    target:
+      entity_id: media_player.home_mini_2            # your mediaplayer
+    data: {}
+  - action: media_player.media_play
+    target:
+      entity_id: media_player.home_mini_2            # your mediaplayer
+    data: {}
+  - delay: 2
+  - target:
+      entity_id: input_text.last_album_played
+    data:
+      value: "{{ artist_code }}:{{ selected.id }}"
+    action: input_text.set_value
+mode: restart
+variables:
+  artists_dict:
+    53-0E-4D-09-51-00-01:                   # NFC tag
+      artist: like
+      name: Музика що сподобалась
+      albums:
+        - title: null
+          id: library://playlist/24          #your playlist for this tag
+    53-12-67-09-51-00-01:                     # NFC tag
+      artist: skillet
+      name: Skillet
+      albums:
+        - title: Dominion 2022
+          id: library://playlist/64            #your playlist for this tag
+        - title: Victorious 2019
+          id: library://playlist/63            #your playlist for this tag
+        - title: Unleashed 2016
+          id: library://playlist/62            #your playlist for this tag
+        - title: Rise 2013
+          id: library://playlist/61            #your playlist for this tag
+        - title: Comatose 2006
+          id: library://playlist/65            #your playlist for this tag
+        - title: Awake 2009
+          id: library://playlist/66            #your playlist for this tag
+    53-81-57-09-51-00-01:                      # NFC tag
+      artist: smuzi
+      name: Grandma's Smuzi
+      albums:
+        - title: Grandma's Smuzi
+          id: library://playlist/58            #your playlist for this tag
+    53-2E-63-09-51-00-01:                      # NFC tag
+      artist: lp
+      name: Linkin Park
+      albums:
+        - title: Living Things 2012
+          id: library://playlist/13            #your playlist for this tag
+        - title: Meteora 2003
+          id: library://playlist/10
+        - title: Hybrid Theory 2000
+          id: library://playlist/8
+        - title: The Hunting Party 2014
+          id: library://playlist/14
+        - title: One More Light 2017
+          id: library://playlist/15
+        - title: Minutes To Midnight 2007
+          id: library://playlist/11
+        - title: From Zero 2024
+          id: library://playlist/9
+        - title: A Thousand Suns 2010
+          id: library://playlist/12
+  tag_id: "{{ trigger.event.data.tag_id }}"
+  last_tag: "{{ states('input_text.last_tag_id') }}"
+  artist_data: "{{ artists_dict.get(tag_id) }}"
+  last_played_raw: "{{ states('input_text.last_album_played') }}"
+  last_album_id: |
+    {% if last_played_raw and ':' in last_played_raw %}
+      {{ last_played_raw.split(':')[1] }}
+    {% else %}""{% endif %}
+  albums: "{{ artist_data.albums if artist_data else [] }}"
+  filtered_albums: >
+    {% set filtered = albums | rejectattr('id', 'equalto', last_album_id) | list
+    %} {% if filtered | length > 0 %}
+      {{ filtered }}
+    {% else %}
+      {{ albums }}
+    {% endif %}
+  artist_code: "{{ artist_data.artist if artist_data else 'unknown' }}"
+  artist_name: "{{ artist_data.name if artist_data else 'Невідомий виконавець' }}"
