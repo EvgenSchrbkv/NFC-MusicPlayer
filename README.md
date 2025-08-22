@@ -3,7 +3,7 @@ Project of an NFC module for controlling a music player. Features include music 
 
 Цей проєкт реалізує NFC-керування музичним плеєром за допомогою модуля ESP32-C3 та прошивки ESPHome. Пристрій дозволяє:
 
-Зчитувати NFC-мітки (RC522 через SPI) для запуску відтворення музики.
+Зчитувати NFC-мітки (RC522 через SPI!!!щоб модуль NFC запрацював потрібно додати резистор 10 кОм між пінами 3,3В і RST!!!) для запуску відтворення музики.
 
 Перемикати альбоми через кнопку енкодера.
 
@@ -29,7 +29,7 @@ NFCPlayer – Music Control via NFC and ESPHome
 
 This project implements NFC-based music control using an ESP32-C3 board and ESPHome firmware. The device allows:
 
-Reading NFC tags (RC522 via SPI) to trigger music playback.
+Reading NFC tags (RC522 via SPI !!!to make the NFC module work, you need to add a 10 kΩ resistor between the 3.3 V and RST pins!!!.) to trigger music playback.
 
 Switching albums via an encoder button.
 
