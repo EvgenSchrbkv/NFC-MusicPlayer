@@ -1,10 +1,11 @@
+
 # NFC-MusicPlayer
 Project of an NFC module for controlling a music player. Features include music playback, album switching, and volume control.
 ![IMG20250822135023](https://github.com/user-attachments/assets/25920482-cfb0-494b-8d40-a1ed8fb28eb3)
 Цей проєкт реалізує NFC-керування музичним плеєром за допомогою модуля ESP32-C3 та прошивки ESPHome. Пристрій дозволяє:
 
 Зчитувати NFC-мітки (RC522 через SPI!!!щоб модуль NFC запрацював потрібно додати резистор 10 кОм між пінами 3,3В і RST!!!) для запуску відтворення музики.
-
+![IMG20250822125643](https://github.com/user-attachments/assets/f9290975-1010-4370-be8e-0a08d538b609)
 Перемикати альбоми через кнопку енкодера.
 
 Керувати гучністю за допомогою енкодера.
